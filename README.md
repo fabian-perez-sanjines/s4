@@ -1,24 +1,51 @@
-App Engine Java Guestbook
-Copyright (C) 2010-2012 Google Inc.
+S4
 
-## Sample guestbook for use with App Engine Java.
 
-Requires [Apache Maven](http://maven.apache.org) 3.0 or greater, and JDK 6+ in order to run.
+(Super Simple Scheduling System)
 
-To build, run
 
-    mvn package
+Summary:
+Create an REST API to for a system that assigns students to classes.  API will be used by both a UI and programmatically by other systems.
 
-Building will run the tests, but to explicitly run tests you can use the test target
 
-    mvn test
+(required) java code via a github repository.
+(required) a short write-up  around what technologies/frameworks you are/would use in implementing various parts/tiers of this system
+(optional) deployable/runnable war/jar
+(optional) API documentation
 
-To start the app, use the [App Engine Maven Plugin](http://code.google.com/p/appengine-maven-plugin/) that is already included in this demo.  Just run the command.
 
-    mvn appengine:devserver
+Timeframe:
+The scope of the exercise is somewhat fluid so do not spend more than 8 hours on it. 
 
-For further information, consult the [Java App Engine](https://developers.google.com/appengine/docs/java/overview) documentation.
 
-To see all the available goals for the App Engine plugin, run
+Detailed Requirements:
 
-    mvn help:describe -Dplugin=appengine
+
+Models:
+Student = { student id, last name, first name }
+Class = { code, title, description }
+Student can attend unlimited number of classes.  Classes can have unlimited number of students
+
+
+Operations:
+Create/Edit/Delete Student
+Create/Edit/Delete Class
+Browse list of all Student
+Browse list of all Classes
+View all Students assigned to a Class
+View all Classes assigned to a Student
+Search Student/Classes by available fields/associations
+
+
+Security:
+None
+
+
+Error Handling:
+Does not need to be thorough.  Just enough to demonstrate how you would handle various types of errors (business, system)
+
+
+Persistence:
+Not part of the evaluation.  Feel free to mock it if that’s faster.
+
+
