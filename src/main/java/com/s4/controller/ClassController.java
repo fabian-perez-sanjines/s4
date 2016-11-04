@@ -1,155 +1,154 @@
 package com.s4.controller;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.s4.data.access.layer.ClassManager;
-import com.s4.entity.ClassEntity;
-import com.s4.entity.StudentEntity;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Response;
+
 import com.s4.model.ClassMapper;
 import com.s4.model.StudentMapper;
+import com.s4.service.ClassService;
 
 /**
- * Controller In charge of Manage classes, this class contains CRUD methods and
- * has relation whit the datastore managers and the services.
+ * Class in charge of publish class services, this class interact with the
+ * controller and produces JSON, the url is /api/class
  * 
  * @author Fabian Perez
  * 
  */
+@Path("/class")
+@Produces("application/json")
 public class ClassController {
 
-	private ClassManager classManager;
+	private ClassService classService;
 
 	/**
-	 * Constructor that instantiate classManager.
+	 * Constructor that instantiate classController.
 	 */
 	public ClassController() {
-		classManager = new ClassManager();
+		classService = new ClassService();
 	}
 
 	/**
-	 * Method that calls the class manager to obtain all the classes that meet
-	 * the filter parameter.
+	 * Service to get all classes that matches the query params.
 	 * 
-	 * @param params
-	 *            map that contains the filter parameter, the key represent the
-	 *            field and the value the value to filter.
-	 * @return List of classes POJO that meet the filter parameter.
+	 * @param title
+	 *            filter by title
+	 * @param description
+	 *            filter by description
+	 * @return JSON response with the list of classes
 	 */
-	public List<ClassMapper> get(Map<String, String> params) {
-		List<ClassMapper> classesMapper = new ArrayList<>();
-
-		List<ClassEntity> classes = classManager.get(params);
-		for (ClassEntity classEntity : classes) {
-			classesMapper.add(getMapper(classEntity));
-		}
-
-		return classesMapper;
+	@GET
+	public Response get(@QueryParam("title") String title, @QueryParam("description") String description) {
+		Map<String, String> params = new HashMap<>();
+		if (title != null)
+			params.put("title", title);
+		if (description != null)
+			params.put("description", description);
+		return Response.status(200).entity(classService.get(params)).build();
 	}
 
 	/**
-	 * Method that calls the class manager to obtain the class that match the
-	 * given code.
+	 * Service to get the class that matches the given code.
 	 * 
 	 * @param code
-	 *            the code that will be used to search the class.
-	 * @return POJO of the class that match the given code.
+	 *            the code to recover the class.
+	 * @return JSON response with the class.
 	 */
-	public ClassMapper get(Long code) {
-		ClassEntity classEntity = classManager.get(code);
-		return getMapper(classEntity);
+	@GET
+	@Path("/{code}")
+	public Response getByID(@PathParam("code") Long code) {
+		Response response = Response.status(404).build();
+		ClassMapper classMapper = classService.get(code);
+		if (classMapper != null)
+			response = Response.status(200).entity(classMapper).build();
+		return response;
 	}
 
 	/**
-	 * Method that calls the class manager to update the given class that match
-	 * the given code.
+	 * Service to create the given class.
+	 * 
+	 * @param classMapper
+	 *            the class to be created.
+	 * @return JSON response class with the generated code.
+	 */
+	@POST
+	@Consumes("application/json")
+	public Response post(ClassMapper classMapper) {
+		return Response.status(200).entity(classService.create(classMapper)).build();
+
+	}
+
+	/**
+	 * Service to update the given class that match the given code.
 	 * 
 	 * @param code
 	 *            the code that will be used to search the class.
 	 * @param classMapper
 	 *            the class to be updated.
-	 * @return POJO of the updated class.
+	 * @return JSON response with the updated class.
 	 */
-	public ClassMapper update(Long code, ClassMapper classMapper) {
-		classMapper.setCode(code);
-		ClassEntity storedClass = classManager.update(getEntity(classMapper));
-		ClassMapper classResponse = getMapper(storedClass);
-		return classResponse;
+	@PUT
+	@Path("/{code}")
+	@Consumes("application/json")
+	public Response put(@PathParam("code") Long code, ClassMapper classMapper) {
+		Response response = Response.status(404).build();
+		ClassMapper classResponse = classService.update(code, classMapper);
+		if (classResponse != null)
+			response = Response.status(200).entity(classResponse).build();
+		return response;
 	}
 
 	/**
-	 * Method that calls the class manager to delete a class given a code.
+	 * Service to delete a class given a code.
 	 * 
 	 * @param code
 	 *            the code that will be used to delete the class.
-	 * @return true if the deletion was correct and false if not.
+	 * @return DELETED if the deletion was correct.
 	 */
-	public boolean delete(Long code) {
-		return classManager.delete(code);
+	@DELETE
+	@Path("/{code}")
+	public Response delete(@PathParam("id") Long code) {
+		Response response = Response.status(404).build();
+		if (classService.delete(code))
+			response = Response.status(200).entity("DELETED").build();
+		return response;
 	}
 
 	/**
-	 * Method that calls the class manager to create the given class.
-	 * 
-	 * @param classMapper
-	 *            the class to be created.
-	 * @return POJO of the created class with the generated code.
-	 */
-	public ClassMapper create(ClassMapper classMapper) {
-		ClassEntity storedClass = classManager.store(getEntity(classMapper));
-		ClassMapper classResponse = getMapper(storedClass);
-		return classResponse;
-	}
-
-	/**
-	 * Method that calls the class manager to obtain all registered students in
-	 * the class with the given code.
+	 * Service to obtain all registered students in the class with the given
+	 * code.
 	 * 
 	 * @param code
 	 *            the class code that will be used to obtain the class students.
-	 * @return List of students POJO that are registered in the class with the
-	 *         given code.
+	 * @return JSON response with the students.
 	 */
-	public List<StudentMapper> getStudents(Long code) {
-		List<StudentMapper> studentsMapper = new ArrayList<>();
-		List<StudentEntity> students = classManager.getStudents(code);
-		if (students == null)
-			return null;
-		for (StudentEntity student : students) {
-			studentsMapper.add(StudentController.getMapper(student));
-		}
-
-		return studentsMapper;
+	@GET
+	@Path("/{code}/students")
+	public Response getStudents(@PathParam("code") Long code) {
+		Response response = Response.status(404).build();
+		List<StudentMapper> students = classService.getStudents(code);
+		if (students != null)
+			response = Response.status(200).entity(students).build();
+		return response;
 	}
 
-	/**
-	 * Given a entity class returns a class POJO.
-	 * 
-	 * @param classEntity
-	 *            class entity to be converted.
-	 * @return class POJO.
-	 */
-	public static ClassMapper getMapper(ClassEntity classEntity) {
-		if (classEntity == null)
-			return null;
-		ClassMapper classMapper = new ClassMapper(classEntity.getCode(), classEntity.getTitle(),
-				classEntity.getDescription());
-		return classMapper;
+	public ClassService getClassController() {
+		return classService;
 	}
 
-	/**
-	 * Given a class POJO returns a class entity.
-	 * 
-	 * @param classMapper
-	 *            class POJO to be converted.
-	 * @return class entity.
-	 */
-	public static ClassEntity getEntity(ClassMapper classMapper) {
-		if (classMapper == null)
-			return null;
-		ClassEntity classEntity = new ClassEntity(classMapper.getCode(), classMapper.getTitle(),
-				classMapper.getDescription());
-		return classEntity;
+	public void setClassController(ClassService classController) {
+		this.classService = classController;
 	}
+
 }

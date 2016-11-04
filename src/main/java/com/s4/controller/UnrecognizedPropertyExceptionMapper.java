@@ -1,4 +1,4 @@
-package com.s4.service;
+package com.s4.controller;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;

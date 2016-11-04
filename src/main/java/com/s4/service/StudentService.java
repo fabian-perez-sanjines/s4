@@ -1,172 +1,173 @@
 package com.s4.service;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Response;
-
-import com.s4.controller.StudentController;
+import com.s4.data.access.layer.StudentManager;
+import com.s4.entity.ClassEntity;
+import com.s4.entity.StudentEntity;
 import com.s4.model.ClassMapper;
 import com.s4.model.StudentMapper;
 
 /**
- * Class in charge of publish student services, this class interact with the
- * controller and produces JSON, the url is /api/student
+ * Controller In charge of Manage students, this class contains CRUD methods and
+ * has relation whit the datastore managers and the services.
  * 
  * @author Fabian Perez
  * 
  */
-@Path("/student")
-@Produces("application/json")
 public class StudentService {
 
-	private StudentController studentController;
+	private StudentManager studentManager;
 
 	/**
-	 * Constructor that instantiate studentController.
+	 * Constructor that instantiate studentManager.
 	 */
 	public StudentService() {
-		studentController = new StudentController();
+		studentManager = new StudentManager();
 	}
 
 	/**
-	 * Service to get all id that matches the query params.
+	 * Method that calls the student manager to obtain all the students that
+	 * meet the filter parameter.
 	 * 
-	 * @param firstname
-	 *            filter by firstname
-	 * @param lastname
-	 *            filter by lastname
-	 * @return JSON response with the list of students
+	 * @param params
+	 *            map that contains the filter parameter, the key represent the
+	 *            field and the value the value to filter.
+	 * @return List of students POJO that meet the filter parameter.
 	 */
-	@GET
-	public Response get(@QueryParam("firstname") String firstname, @QueryParam("lastname") String lastname) {
-		Map<String, String> params = new HashMap<>();
-		if (firstname != null)
-			params.put("firstname", firstname);
-		if (lastname != null)
-			params.put("lastname", lastname);
-		return Response.status(200).entity(studentController.get(params)).build();
+	public List<StudentMapper> get(Map<String, String> params) {
+		List<StudentMapper> studentsMapper = new ArrayList<>();
+
+		List<StudentEntity> students = studentManager.get(params);
+		for (StudentEntity student : students) {
+			studentsMapper.add(getMapper(student));
+		}
+
+		return studentsMapper;
 	}
 
 	/**
-	 * Service to get the student that matches the given id.
-	 * 
-	 * @param id
-	 *            the id to recover the class.
-	 * @return JSON response with the student.
-	 */
-	@GET
-	@Path("/{id}")
-	public Response getByID(@PathParam("id") Long id) {
-		Response response = Response.status(404).build();
-		StudentMapper student = studentController.get(id);
-		if (student != null)
-			response = Response.status(200).entity(student).build();
-		return response;
-	}
-
-	/**
-	 * Service to create the given student.
-	 * 
-	 * @param classMapper
-	 *            the student to be created.
-	 * @return JSON response student with the generated id.
-	 */
-	@POST
-	@Consumes("application/json")
-	public Response post(StudentMapper student) {
-		return Response.status(200).entity(studentController.create(student)).build();
-	}
-
-	/**
-	 * Service to register the student with the given id in the class with the
-	 * given code.
+	 * Method that calls the student manager to obtain the student that match
+	 * the given id.
 	 * 
 	 * @param id
-	 *            to find the student
-	 * @param code
-	 *            to find the class
-	 * @return REGISTERED if it worked.
+	 *            the id that will be used to search the class.
+	 * @return POJO of the student that match the given id.
 	 */
-	@POST
-	@Path("/{id}/register/{code}")
-	public Response post(@PathParam("id") Long id, @PathParam("code") Long code) {
-		Response response = Response.status(404).build();
-		if (studentController.registerClass(id, code))
-			response = Response.status(200).entity("REGISTERED").build();
-		return response;
+	public StudentMapper get(Long id) {
+		StudentEntity student = studentManager.get(id);
+		return getMapper(student);
 	}
 
 	/**
-	 * Service to update the given student that match the given id.
+	 * Method that calls the student manager to update the given student that
+	 * match the given id.
 	 * 
 	 * @param id
 	 *            the id that will be used to search the student.
 	 * @param student
 	 *            the student to be updated.
-	 * @return JSON response with the updated student.
+	 * @return POJO of the updated student.
 	 */
-	@PUT
-	@Path("/{id}")
-	@Consumes("application/json")
-	public Response put(@PathParam("id") Long id, StudentMapper student) {
-		Response response = Response.status(404).build();
-		StudentMapper studentResponse = studentController.update(id, student);
-		if (studentResponse != null)
-			response = Response.status(200).entity(studentResponse).build();
-		return response;
+	public StudentMapper update(Long id, StudentMapper student) {
+		student.setId(id);
+		StudentEntity storedStudent = studentManager.update(getEntity(student));
+		StudentMapper studentResponse = getMapper(storedStudent);
+		return studentResponse;
 	}
 
 	/**
-	 * Service to delete a student given a id.
+	 * Method that calls the student manager to delete a student given a id.
 	 * 
 	 * @param id
 	 *            the id that will be used to delete the student.
-	 * @return DELETED if the deletion was correct.
+	 * @return true if the deletion was correct and false if not.
 	 */
-	@DELETE
-	@Path("/{id}")
-	public Response delete(@PathParam("id") Long id) {
-		Response response = Response.status(404).build();
-		if (studentController.delete(id))
-			response = Response.status(200).entity("DELETED").build();
-		return response;
+	public boolean delete(Long id) {
+		return studentManager.delete(id);
 	}
 
 	/**
-	 * Service to obtain all classes that the student with the given id is
-	 * registered.
+	 * Method that calls the student manager to register a user with the given
+	 * id in a class with the given code.
 	 * 
 	 * @param id
-	 *            the student id that will be used to obtain the student
-	 *            classes.
-	 * @return JSON response with the classes.
+	 *            to identify the student to be registered.
+	 * @param code
+	 *            to identify the class where the student will be registered.
+	 * @return true if the user could be registered
 	 */
-	@GET
-	@Path("/{id}/classes")
-	public Response getStudentses(@PathParam("id") Long id) {
-		Response response = Response.status(404).build();
-		List<ClassMapper> students = studentController.getClasses(id);
-		if (students != null)
-			response = Response.status(200).entity(students).build();
-		return response;
+	public boolean registerClass(Long id, Long code) {
+		return studentManager.register(id, code);
 	}
 
-	public StudentController getStudentController() {
-		return studentController;
+	/**
+	 * Method that calls the student manager to create the given student.
+	 * 
+	 * @param studentMapper
+	 *            the student to be created.
+	 * @return POJO of the created student with the generated id.
+	 */
+	public StudentMapper create(StudentMapper studentMapper) {
+		StudentEntity storedStudent = studentManager.store(getEntity(studentMapper));
+		StudentMapper studentResponse = getMapper(storedStudent);
+		return studentResponse;
 	}
 
-	public void setStudentController(StudentController studentController) {
-		this.studentController = studentController;
+	/**
+	 * Method that calls the student manager to obtain all classes that the
+	 * student with the id is registered.
+	 * 
+	 * @param id
+	 *            the id that will be used to obtain the student classes.
+	 * @return List of classes POJO where the student with the given id is
+	 *         registered.
+	 */
+	public List<ClassMapper> getClasses(Long id) {
+		List<ClassMapper> classMapper = new ArrayList<ClassMapper>();
+		List<ClassEntity> classes = studentManager.getClasses(id);
+		if (classes == null)
+			return null;
+		for (ClassEntity classEntity : classes) {
+			classMapper.add(ClassService.getMapper(classEntity));
+		}
+
+		return classMapper;
+	}
+
+	/**
+	 * Given a student entity returns a student POJO.
+	 * 
+	 * @param student
+	 *            student entity to be converted.
+	 * @return student POJO.
+	 */
+	public static StudentMapper getMapper(StudentEntity student) {
+		if (student == null)
+			return null;
+		StudentMapper studentsMapper = new StudentMapper();
+		studentsMapper.setId(student.getId());
+		studentsMapper.setFirstName(student.getFirstName());
+		studentsMapper.setLastName(student.getLastName());
+		return studentsMapper;
+	}
+
+	/**
+	 * Given a student POJO returns a student entity.
+	 * 
+	 * @param studentsMapper
+	 *            student POJO to be converted.
+	 * @return student entity.
+	 */
+	public static StudentEntity getEntity(StudentMapper studentsMapper) {
+		if (studentsMapper == null)
+			return null;
+		StudentEntity student = new StudentEntity();
+		student.setId(studentsMapper.getId());
+		student.setFirstName(studentsMapper.getFirstName());
+		student.setLastName(studentsMapper.getLastName());
+		return student;
 	}
 }
