@@ -1,24 +1,174 @@
-App Engine Java Guestbook
-Copyright (C) 2010-2012 Google Inc.
 
-## Sample guestbook for use with App Engine Java.
+Container: 					    Google App Engine 1.8.4
+JAX-RS implementation: 	Jersey 1.1.5
+JSON MAPPER:				    JACKSON 2.3.2
+Data-interchange format:JSON
+Persistence: 				    GAE Datastore with Objectify 5.1.13
+Test: 						      JUnit 4.10
+Mocking: 					      Mockito 1.9.0
+Logging:  					    GAE with java.util.logging.Logger
+Maven to manage the project.
 
-Requires [Apache Maven](http://maven.apache.org) 3.0 or greater, and JDK 6+ in order to run.
+The api is deployed in http://1-dot-supersimpleschedulingsystem.appspot.com/api
 
-To build, run
+API
+SERVICES Documentation
+*Student
+	GET http://1-dot-supersimpleschedulingsystem.appspot.com/api/student
+	Returns all the students.
+		[{
+		    "id": 5096363633147904,
+		    "lastname": "Amstrong",
+		    "firstname": "Jack"
+		}, {
+		    "id": 5644406560391168,
+		    "lastname": "Smith",
+		    "firstname": "John"
+		}, {
+		    "id": 5654313976201216,
+		    "lastname": "Amstrong",
+		    "firstname": "Jack"
+		}, {
+		    "id": 5720147234914304,
+		    "lastname": "Smith",
+		    "firstname": "Mary"
+		}]
 
-    mvn package
+	GET http://1-dot-supersimpleschedulingsystem.appspot.com/api/student?lastname=Smith
+	Returns all the students that have lastname smith.
+		[{
+		    "id": 5644406560391168,
+		    "lastname": "Smith",
+		    "firstname": "John"
+		}, {
+		    "id": 5720147234914304,
+		    "lastname": "Smith",
+		    "firstname": "Mary"
+		}]
 
-Building will run the tests, but to explicitly run tests you can use the test target
+	GET http://1-dot-supersimpleschedulingsystem.appspot.com/api/student/5644406560391168
+	Returns the student that have id 5644406560391168.
+		{
+		    "id": 5644406560391168,
+		    "lastname": "Smith",
+		    "firstname": "John"
+		}
 
-    mvn test
+	GET http://1-dot-supersimpleschedulingsystem.appspot.com/api/student/5096363633147904/classes	
+	Returns all the classes for the student with id 5096363633147904
+		[{
+		    "code": 5629499534213120,
+		    "title": "Compilers",
+		    "description": "compile description"
+		}, {
+		    "code": 5649391675244544,
+		    "title": "Algorithms",
+		    "description": "algo description"
+		}]
 
-To start the app, use the [App Engine Maven Plugin](http://code.google.com/p/appengine-maven-plugin/) that is already included in this demo.  Just run the command.
+	POST http://1-dot-supersimpleschedulingsystem.appspot.com/api/student
+	Content
+		{
+		    "lastname": "Amstrong",
+		    "firstname": "Jac"
+		}
+	Returns the student with the generated ID
+		{
+		    "id":5096363633147904,
+		    "lastname": "Amstrong",
+		    "firstname": "Jac"
+		}
 
-    mvn appengine:devserver
+	PUT http://1-dot-supersimpleschedulingsystem.appspot.com/api/student/5096363633147904
+	Content
+		{
+		    "lastname": "Amstrong",
+		    "firstname": "Jack"
+		}
+	Returns the updated student 
+		{
+		    "id":5096363633147904,
+		    "lastname": "Amstrong",
+		    "firstname": "Jack"
+		}	
 
-For further information, consult the [Java App Engine](https://developers.google.com/appengine/docs/java/overview) documentation.
+	DELETE http://1-dot-supersimpleschedulingsystem.appspot.com/api/student/5096363633147904
+	Returns DELETED if the student with the id 5096363633147904 was deleted
+		DELETED
 
-To see all the available goals for the App Engine plugin, run
+	POST http://1-dot-supersimpleschedulingsystem.appspot.com/api/student/5654313976201216/register/5649391675244544	
+	Register de user with the id 5654313976201216 to the class with the code 5649391675244544
+		REGISTERED
 
-    mvn help:describe -Dplugin=appengine
+*Class
+	GET http://1-dot-supersimpleschedulingsystem.appspot.com/api/class
+	Returns all the classes.
+		[{
+		    "code": 5629499534213120,
+		    "title": "Compilers",
+		    "description": "compile description"
+		}, {
+		    "code": 5649391675244544,
+		    "title": "Algorithms",
+		    "description": "algo description"
+		}]
+
+	GET http://1-dot-supersimpleschedulingsystem.appspot.com/api/class?title=Algorithms
+	Returns all the classes that have title Algorithms.
+		[{
+		    "code": 5649391675244544,
+		    "title": "Algorithms",
+		    "description": "algo description"
+		}]
+
+	GET http://1-dot-supersimpleschedulingsystem.appspot.com/api/class/5649391675244544
+	Returns the class that have id 5649391675244544.
+		{
+		    "code": 5649391675244544,
+		    "title": "Algorithms",
+		    "description": "algo description"
+		}
+
+	GET http://1-dot-supersimpleschedulingsystem.appspot.com/api/class/5649391675244544/students	
+	Returns all the students for the class with id 5649391675244544
+		[{
+		    "id": 5096363633147904,
+		    "lastname": "Amstrong",
+		    "firstname": "Jack"
+		}, {
+		    "id": 5654313976201216,
+		    "lastname": "Lawrence",
+		    "firstname": "Peter"
+		}]
+
+	POST http://1-dot-supersimpleschedulingsystem.appspot.com/api/class
+	Content
+		{
+		    "title": "Algorithms",
+		    "description": "algo description"
+		}
+	Returns the class with the generated code
+		{
+		    "code": 5649391675244544,
+		    "title": "Algorithms",
+		    "description": "algo description"
+		}
+
+	PUT http://1-dot-supersimpleschedulingsystem.appspot.com/api/class/5649391675244544
+	Content
+		{
+		    "title": "Algorithms",
+		    "description": "algorithm description"
+		}
+	Returns the updated class
+		{
+		    "code": 5649391675244544,
+		    "title": "Algorithms",
+		    "description": "algorithm description"
+		}	
+
+	DELETE http://1-dot-supersimpleschedulingsystem.appspot.com/api/class/5649391675244544
+	Returns DELETED if the student with the id 5649391675244544 was deleted
+		DELETED
+
+
