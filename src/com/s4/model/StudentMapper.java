@@ -1,22 +1,28 @@
 package com.s4.model;
 
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Mapping class that represents a Class, is used to map to JSON.
+ * 
+ * @author Fabian Perez
+ * 
+ */
+@XmlRootElement
 public class StudentMapper {
 	private Long id;
-	private String lastName;
-	private String firstName;
-	
-	public StudentMapper(){		
+	private String lastname;
+	private String firstname;
+
+	public StudentMapper() {
 	}
 
-	public StudentMapper(Long id, String lastName, String firstName) {
+	public StudentMapper(Long id, String firstname, String lastname) {
 		this.id = id;
-		this.lastName = lastName;
-		this.firstName = firstName;
+		this.lastname = lastname;
+		this.firstname = firstname;
 	}
-
-
 
 	public Long getId() {
 		return id;
@@ -27,21 +33,22 @@ public class StudentMapper {
 		this.id = id;
 	}
 
-	public String getLastName() {
-		return lastName;
-	}
-	
-	@XmlElement
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
-	}
-
-	public String getFirstName() {
-		return firstName;
+	public String getLastname() {
+		return lastname;
 	}
 
 	@XmlElement
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
+	public void setLastname(String lastname) {
+		this.lastname = lastname;
 	}
+
+	public String getFirstname() {
+		return firstname;
+	}
+
+	@XmlElement
+	public void setFirstname(String firstname) {
+		this.firstname = firstname;
+	}
+
 }

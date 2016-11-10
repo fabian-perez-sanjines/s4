@@ -1,0 +1,29 @@
+ven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+# Eclipse
+.classpath
+.project
+.settings/
+ 
+# Mac
+.DS_Store
+ 
+#java
+ *.class
+
+# Package Files 
+*.jar
+*.war
+*.ear
+
+# Google App Engine generated folder
+appengine-generated/
